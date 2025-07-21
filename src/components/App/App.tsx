@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { fetchNotes } from '../../services/noteService'
 import { useDebouncedCallback } from 'use-debounce'
 import NoteForm from '../NoteForm/NoteForm'
@@ -13,13 +13,17 @@ import css from './App.module.css'
 export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState("");
-  const updateSearchQuery = useDebouncedCallback(setQuery, 300);
+  const updateSearchQuery = useDebouncedCallback((newQuery: string) => {
+    setQuery(newQuery);
+    setCurrentPage(1);
+  }, 300);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["notes", query, currentPage],
     queryFn: () => fetchNotes(query, currentPage),
     enabled: true,
+    placeholderData: keepPreviousData,
   })
 
   const totalPages = data?.totalPages ?? 0;
